@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "arm_math.h": "c",
+        "arm_nnfunctions.h": "c"
+    }
+}
