@@ -1,4 +1,13 @@
-CMSIS NN Lib example arm_nnexample_cifar10 for
-  Cortex-M4 and Cortex-M7.
+Execute os seguintes comandos **neste diretorio** para obter a classificação das 1000 primeiras imagens do dataset de testes do CIFAR-10.
 
-The example is configured for uVision Simulator.
+> GCC é opcional.
+
+```
+python3 input_generator.py
+```
+```
+gcc -o teste arm_nnexamples_cifa10.cpp
+```
+```
+./teste
+```
