@@ -6,7 +6,7 @@ Execute os seguintes comandos **neste diretorio** para obter a classificação d
 python3 input_generator.py
 ```
 ```
-gcc -o teste arm_nnexamples_cifa10.cpp
+gcc -o teste arm_nnexamples_cifar10.cpp
 ```
 ```
 ./teste
