@@ -9,5 +9,12 @@ python3 input_generator.py
 gcc -o teste arm_nnexamples_cifar10.cpp
 ```
 ```
+gcc -lpthread -o teste arm_nnexamples_cifar10.cpp
+```
+Executar com OpenMP
+```
+gcc -o testecopy arm_nnexamples_cifar10_copy.cpp -fopenmp -lstdc++
+```
+```
 ./teste
 ```
