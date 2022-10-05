@@ -17,13 +17,10 @@ Compilar com GCC
 gcc -o testecopy arm_nnexamples_cifar10_open_mp.cpp -fopenmp -lstdc++
 ```
 Compilar com clang++
-
 ```
 clang++ arm_nnexamples_cifar10_open_mp.cpp -fopenmp -o testecopy
-
 ```
 Executar
 ```
 ./teste
-
 ```
