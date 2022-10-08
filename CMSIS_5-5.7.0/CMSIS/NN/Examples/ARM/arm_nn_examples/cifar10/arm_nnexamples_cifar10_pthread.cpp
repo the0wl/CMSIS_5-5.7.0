@@ -1,6 +1,10 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <pthread.h>
+#include <time.h>
+#include <sys/time.h>
+#include <string.h>
+#include <limits.h>
 #include "../../../../../DSP/Include/arm_math.h"
 #include "arm_nnexamples_cifar10_parameter.h"
 #include "arm_nnexamples_cifar10_weights.h"
@@ -41,7 +45,7 @@ q7_t      scratch_buffer[32 * 32 * 10 * 4];
 void retornaClasse(const int k_image, const q7_t * resultado);
 void* thread(void* arg);
 
-int main(int argc, char *argv[]) {
+int main() {
   #ifdef RTE_Compiler_EventRecorder
   EventRecorderInitialize (EventRecordAll, 1);  // initialize and start Event Recorder
   #endif
@@ -49,8 +53,16 @@ int main(int argc, char *argv[]) {
   printf("start execution\n");
   /* start the execution */
 
-  int numero_de_threads = strtol(argv[1], NULL, 10);
-  numero_de_threads = (numero_de_threads > 8 ) ? 8 : numero_de_threads;
+  int numero_de_threads = 1;
+  printf("Informe o numero de threads: ");
+  scanf("%d", &numero_de_threads);
+
+  if (numero_de_threads < 1)
+    numero_de_threads =  1;
+    
+  struct timeval  tv1, tv2;
+  gettimeofday(&tv1, NULL);
+
   pthread_t* ptid;
   ptid = (pthread_t*) malloc(1000 * sizeof(pthread_t));
 
@@ -105,6 +117,12 @@ int main(int argc, char *argv[]) {
   }
 
   free(ptid);
+
+  gettimeofday(&tv2, NULL);
+
+  printf ("Total time = %f seconds\n",
+          (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+          (double) (tv2.tv_sec - tv1.tv_sec));
 
   return 0;
 }
