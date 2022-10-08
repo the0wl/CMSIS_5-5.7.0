@@ -33,6 +33,9 @@ static q7_t conv3_bias[CONV3_OUT_CH] = CONV3_BIAS;
 static q7_t ip1_wt[IP1_DIM * IP1_OUT] = IP1_WT;
 static q7_t ip1_bias[IP1_OUT] = IP1_BIAS;
 
+//LUCAS
+static pthread_mutex_t cs_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 /* Here the image_data should be the raw uint8 type RGB image in [RGB, RGB, RGB ... RGB] format */
 uint8_t   image_data[1000][CONV1_IM_CH * CONV1_IM_DIM * CONV1_IM_DIM] = IMG_DATA;
 q7_t      output_data[IP1_OUT];
@@ -42,7 +45,10 @@ q7_t      col_buffer[2 * 5 * 5 * 32 * 2];
 
 q7_t      scratch_buffer[32 * 32 * 10 * 4];
 
+int pos = -1;
+
 void retornaClasse(const int k_image, const q7_t * resultado);
+void processa(int inicio, int fim, int n_threads);
 void* thread(void* arg);
 
 int main() {
@@ -54,69 +60,21 @@ int main() {
   /* start the execution */
 
   int numero_de_threads = 1;
+  char controle;
+
   printf("Informe o numero de threads: ");
   scanf("%d", &numero_de_threads);
 
   if (numero_de_threads < 1)
     numero_de_threads =  1;
+
+  if (numero_de_threads > 8)
+    numero_de_threads =  8;
     
   struct timeval  tv1, tv2;
   gettimeofday(&tv1, NULL);
 
-  pthread_t* ptid;
-  ptid = (pthread_t*) malloc(1000 * sizeof(pthread_t));
-
-  int j;
-  int aux;
-
-  for (j=0; j < 1000; j = j+numero_de_threads) { // KELVIN
-
-    pthread_create(&ptid[j], NULL, thread, &j);
-
-    if (numero_de_threads > 1) {
-        aux = j+1;
-        pthread_create(&ptid[aux], NULL, thread, &(aux));
-    }
-
-    if (numero_de_threads > 2) {
-        aux = j+2;
-        pthread_create(&ptid[aux], NULL, thread, &(aux));
-    }
-
-    if (numero_de_threads > 3) {
-        aux = j+3;
-        pthread_create(&ptid[aux], NULL, thread, &(aux));
-    }
-
-    if (numero_de_threads > 4) {
-        aux = j+1;
-        pthread_create(&ptid[aux], NULL, thread, &(aux));
-    }
-
-    if (numero_de_threads > 5) {
-        aux = j+2;
-        pthread_create(&ptid[aux], NULL, thread, &(aux));
-    }
-
-    if (numero_de_threads > 6) {
-        aux = j+3;
-        pthread_create(&ptid[aux], NULL, thread, &(aux));
-    }
-
-    if (numero_de_threads > 7) {
-        aux = j+3;
-        pthread_create(&ptid[aux], NULL, thread, &(aux));
-    }
-
-  }
-    
-  for (j=0; j < 1000; j++) { // KELVIN
-
-    pthread_join(ptid[j], NULL);
-
-  }
-
-  free(ptid);
+  processa(0, 999, numero_de_threads);   
 
   gettimeofday(&tv2, NULL);
 
@@ -127,8 +85,34 @@ int main() {
   return 0;
 }
 
+void processa(int inicio, int fim, int n_threads) {
+    
+    pthread_t* ptid;
+    ptid = (pthread_t*) malloc(n_threads * sizeof(pthread_t));
+    int i, j;
+
+    for(i = inicio; i <= fim; i = i + n_threads) {
+
+        for(j = 0; j <= n_threads - 1; j++) {
+            pthread_create(&ptid[j], NULL, thread, NULL);
+
+        }
+
+        for(j = 0; j <= n_threads - 1; j++) {
+
+            pthread_join(ptid[j], NULL);
+
+        }
+    }
+    free(ptid);
+}
+
 void* thread(void* arg) {
-    int j = *((int *) arg);
+    pthread_mutex_lock( &cs_mutex );
+    
+    int postatual = pos + 1;
+    //printf("%d ", postatual);
+    pos++;
 
     q7_t *img_buffer1 = scratch_buffer;
     q7_t *img_buffer2 = img_buffer1 + 32 * 32 * 32;
@@ -137,14 +121,16 @@ void* thread(void* arg) {
     int mean_data[3] = INPUT_MEAN_SHIFT;
     unsigned int scale_data[3] = INPUT_RIGHT_SHIFT;
     for (int i=0;i<32*32*3; i+=3) {
-        img_buffer2[i] =   (q7_t)__SSAT( ((((int)image_data[j][i]   - mean_data[0])<<7) + (0x1<<(scale_data[0]-1)))
+        img_buffer2[i] =   (q7_t)__SSAT( ((((int)image_data[postatual][i]   - mean_data[0])<<7) + (0x1<<(scale_data[0]-1)))
                                 >> scale_data[0], 8);
-        img_buffer2[i+1] = (q7_t)__SSAT( ((((int)image_data[j][i+1] - mean_data[1])<<7) + (0x1<<(scale_data[1]-1)))
+        img_buffer2[i+1] = (q7_t)__SSAT( ((((int)image_data[postatual][i+1] - mean_data[1])<<7) + (0x1<<(scale_data[1]-1)))
                                 >> scale_data[1], 8);
-        img_buffer2[i+2] = (q7_t)__SSAT( ((((int)image_data[j][i+2] - mean_data[2])<<7) + (0x1<<(scale_data[2]-1)))
+        img_buffer2[i+2] = (q7_t)__SSAT( ((((int)image_data[postatual][i+2] - mean_data[2])<<7) + (0x1<<(scale_data[2]-1)))
                                 >> scale_data[2], 8);
     }
-    
+
+    pthread_mutex_unlock( &cs_mutex );
+
     // conv1 img_buffer2 -> img_buffer1
     arm_convolve_HWC_q7_RGB(img_buffer2, CONV1_IM_DIM, CONV1_IM_CH, conv1_wt, CONV1_OUT_CH, CONV1_KER_DIM, CONV1_PADDING,
                             CONV1_STRIDE, conv1_bias, CONV1_BIAS_LSHIFT, CONV1_OUT_RSHIFT, img_buffer1, CONV1_OUT_DIM,
@@ -183,7 +169,7 @@ void* thread(void* arg) {
 
     arm_softmax_q7(output_data, 10, output_data);
 
-    retornaClasse(j, output_data);
+    retornaClasse(postatual, output_data);
 
     pthread_exit(NULL);
 }
@@ -202,37 +188,37 @@ void retornaClasse(const int k_image, const q7_t * resultado) {
 
   switch(wClasse) {
   case 0:
-    printf("A imagem %d é da classe aviao [ %d ]\n", k_image, wMaior);
+    printf("A imagem %03d é da classe aviao [ %d ]\n", k_image, wMaior);
     break;
   case 1:
-    printf("A imagem %d é da classe automovel [ %d ]\n", k_image, wMaior);
+    printf("A imagem %03d é da classe automovel [ %d ]\n", k_image, wMaior);
     break;
   case 2:
-    printf("A imagem %d é da classe passaro [ %d ]\n", k_image, wMaior);
+    printf("A imagem %03d é da classe passaro [ %d ]\n", k_image, wMaior);
     break;
   case 3:
-    printf("A imagem %d é da classe gato [ %d ]\n", k_image, wMaior);
+    printf("A imagem %03d é da classe gato [ %d ]\n", k_image, wMaior);
     break;
   case 4:
-    printf("A imagem %d é da classe viado [ %d ]\n", k_image, wMaior);
+    printf("A imagem %03d é da classe viado [ %d ]\n", k_image, wMaior);
     break;
   case 5:
-    printf("A imagem %d é da classe cachorro [ %d ]\n", k_image, wMaior);
+    printf("A imagem %03d é da classe cachorro [ %d ]\n", k_image, wMaior);
     break;
   case 6:
-    printf("A imagem %d é da classe sápo [ %d ]\n", k_image, wMaior);
+    printf("A imagem %03d é da classe sápo [ %d ]\n", k_image, wMaior);
     break;
   case 7:
-    printf("A imagem %d é da classe cavalo [ %d ]\n", k_image, wMaior);
+    printf("A imagem %03d é da classe cavalo [ %d ]\n", k_image, wMaior);
     break;
   case 8:
-    printf("A imagem %d é da classe navio [ %d ]\n", k_image, wMaior);
+    printf("A imagem %03d é da classe navio [ %d ]\n", k_image, wMaior);
     break;
   case 9:
-    printf("A imagem %d é da classe caminhao [ %d ]\n", k_image, wMaior);
+    printf("A imagem %03d é da classe caminhao [ %d ]\n", k_image, wMaior);
     break;
   default:
-    printf("A imagem %d nao pode ser classificada\n", k_image);
+    printf("A imagem %03d nao pode ser classificada\n", k_image);
   }
 } 
 

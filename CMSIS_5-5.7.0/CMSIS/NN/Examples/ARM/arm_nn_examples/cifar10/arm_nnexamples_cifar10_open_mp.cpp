@@ -146,7 +146,7 @@ int main()
   q7_t     *img_buffer2 = img_buffer1 + 32 * 32 * 32;
 
   int numThreads = 1;
-  printf("Informe o numero de threads: ");
+  printf("Informe o numero de Threads (1-4): ");
   scanf("%d", &numThreads);
 
   if (numThreads < 1)
