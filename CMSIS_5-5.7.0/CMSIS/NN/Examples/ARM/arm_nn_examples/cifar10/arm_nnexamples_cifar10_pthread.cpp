@@ -50,6 +50,7 @@ int main(int argc, char *argv[]) {
   /* start the execution */
 
   int numero_de_threads = strtol(argv[1], NULL, 10);
+  numero_de_threads = (numero_de_threads > 8 ) ? 8 : numero_de_threads;
   pthread_t* ptid;
   ptid = (pthread_t*) malloc(1000 * sizeof(pthread_t));
 
@@ -71,6 +72,26 @@ int main(int argc, char *argv[]) {
     }
 
     if (numero_de_threads > 3) {
+        aux = j+3;
+        pthread_create(&ptid[aux], NULL, thread, &(aux));
+    }
+
+    if (numero_de_threads > 4) {
+        aux = j+1;
+        pthread_create(&ptid[aux], NULL, thread, &(aux));
+    }
+
+    if (numero_de_threads > 5) {
+        aux = j+2;
+        pthread_create(&ptid[aux], NULL, thread, &(aux));
+    }
+
+    if (numero_de_threads > 6) {
+        aux = j+3;
+        pthread_create(&ptid[aux], NULL, thread, &(aux));
+    }
+
+    if (numero_de_threads > 7) {
         aux = j+3;
         pthread_create(&ptid[aux], NULL, thread, &(aux));
     }
