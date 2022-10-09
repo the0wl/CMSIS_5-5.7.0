@@ -1,16 +1,20 @@
-# Comparação de desempenho em implementações multi-threads no algoritmo cifar10
+# Comparação de desempenho em implementações multi-threads no algoritmo `arm_nnexamples_cifar10`
 
-O presente trabalho tem como objetivo comparar a utilização e aplicação de paralelismo em um algoritmo de machine learning e visão computacional, através da biblioteca Common Microcontroller Software Interface Standard (CMSIS). Serão criados dois algoritmos na linguagem C++, sendo utilizadas as bibliotecas `pthread` e `openmp` respectivamente, para implementar uma versão multi-thread. Os algoritmos irão realizar a classificação de 1000 imagens.
+O presente repositório tem como finalidade comparar a utilização das bibliotecas openmp e pthread para realizar a paralelização de um algoritmo de rede neural convolucional (CNN) que trabalha sobre o coleção de imagens do Instituto Canadense para Pesquisa Avancada (CIFAR), chamada CIFAR-10. Foram desenvolvidos dois algoritmos, um com cada biblioteca. Após isso, os tempos de execução foram comparados, utilizando 1, 2, 4, 8 threads. Por fim, foram apresentados e discutidos os resultados obtidos.
 
 O repositório original se encontra em [CMSIS](https://github.com/ARM-software/CMSIS_5/tree/5.7.0).
 
+## Introdução
+
+O presente trabalho tem como objetivo comparar a utilização e aplicação de paralelismo em um algoritmo de machine learning e visão computacional, tendo como base a biblioteca Common Microcontroller Software Interface Standard (CMSIS). O CMSIS é um conjunto de ferramentas, estruturas, e fluxos de trabalho que ajudam a simplificar a reutilização de software, reduzir a curva de aprendizagem para programadores de microcontroladores, acelerarando a construção e depuração de projetos.
+
+Para a comparacao foi tomado como base o algoritmo arm_nnexamples_cifar10, presente nos exemplos de implementação de redes neurais, em arquiteturas Advanced RISC Machine (ARM). A partir do código base, que implementa o reconhecimento de uma imagem, fixa na biblioteca, foi implementada uma versão capaz de reconhecer 1000 imagens. Estas imagens são as 1000 primeiras imagens da coleção de imagens CIFAR-10.
+
+Esta nova versão foi paralelizada utilizando as bibliotecas omp.h e pthread.h do C++. Também foram utilizados os compiladores gcc e clang, comparando a execucao em 1, 2, 4 e 8 threads.
+
 ## Ambiente de desenvolvimento
 
-Como sistema operacional, foi utilizado o `Windows 10`, rodando o recurso Windows Subsystem for Linux (WSL) com a distribuição `Ubuntu 22.04`.
-
-## Setup
-
-Para configurar o seu sistema de acordo com o utilizado neste trabalho você deve:
+Como sistema operacional, foi utilizado o `Windows 10`, rodando o recurso Windows Subsystem for Linux (WSL) com a distribuição `Ubuntu 22.04`. Para configurar o seu sistema de acordo com o utilizado neste trabalho você deve:
 - Instalar o recurso [Windows Subsystem for Linux (WSL)](#instalação-do-windows-subsystem-for-linux-wsl).
 - Instalar o editor [Visual Studio Code](https://code.visualstudio.com) (VSCode).
 - A instalação da extensão [WSL](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl) no VSCode.
@@ -85,5 +89,9 @@ Os resultados obtidos foram dispostos na tabela abaixo.
 | omp (clang)              |   25.87  |   13.57   |   10.24   |    8.71   |    6.78   |
 | pthread (gcc)            |   24.63  |   13.4    |   10.96   |    9.35   |    6.55   |
 | pthread (clang)          |   23.86  |   13.58   |   10.90   |    9.17   |    6.39   |
+
+Como resultado das execuções e análises realizadas das bibliotecas OpenMp e pthread, executando com diferentes números de threads, podemos ver uma pequena diferença de tempo de execução entre as bibliotecas utilizadas. Mas comparando a execução em single thread com a execução paralela podemos ver uma redução significativa no tempo de execução, mostrando um bom ganho de eficiência e desempenho.
+
+O melhor resultado obtido foi utilizando a quantidade máxima de threads que a máquina de teste permitia, neste caso, 8 threads. O resultado deste teste com máxima eficiência foi o tempo de execução de aproximadamente 6 segundos, com pequenas variações entre os compiladores e bibliotecas utilizadas.
 
 Diante destes resultados, o grupo constatou que no caso de estudo, a execução por meio da biblioteca `omp` se destaca em comparação a biblioteca `pthread`. Podemos observar resultados muito semelhantes, exibindo diferenças de milisegundos, porém a implementação de multi-threads utilizando a biblioteca `omp` foi muito mais simples, necessitando apenas uma linha de código e sem se preocupar com o `lock` de recursos, como é o caso da biblioteca `pthread`.
