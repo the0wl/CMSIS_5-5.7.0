@@ -67,6 +67,12 @@ gcc -pthread -o algoritmo arm_nnexamples_cifar10_pthread.cpp
 clang++ -pthread -o algoritmo arm_nnexamples_cifar10_pthread.cpp
 ```
 
+Para compilar o algoritmo utilizando a biblioteca `mpi` utilize o respectivo comando:
+
+```shell
+mpicc++ arm_nnexamples_cifar10_mpi.cpp -o algoritmo
+```
+
 ## Execução dos algoritmos
 
 Qualquer um dos comandos anteriores irá gerar um arquivo de output chamado `algoritmo`. Para executar o arquivo utilize o comando de terminal a seguir.
@@ -74,6 +80,13 @@ Qualquer um dos comandos anteriores irá gerar um arquivo de output chamado `alg
 ```shell
 ./algoritmo
 ```
+
+Para execução do algoritmo com `mpi` utilize o seguinte comando:
+```shell
+mpirun -np 0 ./algoritmo1
+```
+> Utilizando 0 será utilizado o número máximo de threads do dispositivo.
+> Pode ser alterado para o número de threads desejadas.
 
 O algoritmo irá solicitar o número de threads a serem utilizadas. Basta informar um número de threads a serem utilizadas e apertar a tecla `ENTER`.
 
@@ -89,6 +102,9 @@ Os resultados obtidos foram dispostos na tabela abaixo.
 | omp (clang)              |   25.87  |   13.57   |   10.24   |    8.71   |    6.78   |
 | pthread (gcc)            |   24.63  |   13.4    |   10.96   |    9.35   |    6.55   |
 | pthread (clang)          |   23.86  |   13.58   |   10.90   |    9.17   |    6.39   |
+| mpi                      |   26.08  |   13.32   |    8.87   |    6.86   |    5.76   |
+
+
 
 Como resultado das execuções e análises realizadas das bibliotecas OpenMp e pthread, executando com diferentes números de threads, podemos ver uma pequena diferença de tempo de execução entre as bibliotecas utilizadas. Mas comparando a execução em single thread com a execução paralela podemos ver uma redução significativa no tempo de execução, mostrando um bom ganho de eficiência e desempenho.
 
